@@ -1,11 +1,12 @@
+
 server:
-  port: 8761
+  port: 8082
 
 spring:
   application:
-    name: discoveryservice
+    name: my-first-service
 
 eureka:
   client:
-    register-with-eureka: false
     fetch-registry: false
+    register-with-eureka: false
