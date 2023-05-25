@@ -20,6 +20,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public WebSecurity(Environment env, UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.env = env;
         this.userService = userService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }

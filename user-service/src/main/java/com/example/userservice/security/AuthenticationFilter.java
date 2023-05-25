@@ -4,6 +4,8 @@ import com.example.userservice.dto.UserDto;
 import com.example.userservice.service.UserService;
 import com.example.userservice.vo.RequestLogin;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,17 +21,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
 @Slf4j
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private UserService userService;
-    private Environment evn;
+    private Environment env;
 
-    public AuthenticationFilter(AuthenticationManager authenticationManager, UserService userService, Environment evn) {
+    public AuthenticationFilter(AuthenticationManager authenticationManager, UserService userService, Environment env) {
         super(authenticationManager);
         this.userService = userService;
-        this.evn = evn;
+        this.env = env;
     }
 
     @Override
@@ -59,5 +62,15 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                                             Authentication authResult) throws IOException, ServletException {
         String username = ((User) authResult.getPrincipal()).getUsername();
         UserDto userDetails = userService.getUserDetailsByEmail(username);
+
+        String token = Jwts.builder()
+                .setSubject(userDetails.getUserId())
+                .setExpiration(new Date(System.currentTimeMillis() +
+                        Long.parseLong(env.getProperty("token.expiration_time"))))
+                .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret"))
+                .compact();
+
+        response.addHeader("token", token);
+        response.addHeader("userId", userDetails.getUserId());
     }
 }
